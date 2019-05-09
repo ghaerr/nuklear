@@ -35,13 +35,15 @@
 #include <unistd.h>
 #include <time.h>
 
-#define RAWFB_RGBX_8888
+//#define RAWFB_XRGB_8888			/* ABGR in register, RGBA in memory*/
+#define RAWFB_RGBX_8888				/* 0RGB in register, BGRX in memory (default)*/
 #define NK_INCLUDE_FIXED_TYPES
 #define NK_INCLUDE_STANDARD_IO
 #define NK_INCLUDE_STANDARD_VARARGS
 #define NK_INCLUDE_DEFAULT_ALLOCATOR
 #define NK_IMPLEMENTATION
 #define NK_XLIBSHM_IMPLEMENTATION
+#define NK_XLIBSHM_USEFALLBACK			/* turns off actual XShm and uses XPutImage to reduce flicker*/
 #define NK_RAWFB_IMPLEMENTATION
 #define NK_INCLUDE_FONT_BAKING
 #define NK_INCLUDE_DEFAULT_FONT
@@ -111,7 +113,7 @@ sleep_for(long t)
  * ===============================================================*/
 /* This are some code examples to provide a small overview of what can be
  * done with this library. To try out an example uncomment the defines */
-/*#define INCLUDE_ALL */
+#define INCLUDE_ALL
 /*#define INCLUDE_STYLE */
 /*#define INCLUDE_CALCULATOR */
 /*#define INCLUDE_OVERVIEW */
@@ -152,7 +154,7 @@ main(void)
     XWindow xw;
     struct rawfb_context *rawfb;
     void *fb = NULL;
-    unsigned char tex_scratch[512 * 512];
+    unsigned char tex_scratch[512 * 512];		/* NOTE: rather large for embedded*/
 
     /* X11 */
     memset(&xw, 0, sizeof xw);
@@ -165,7 +167,7 @@ main(void)
     xw.cmap = XCreateColormap(xw.dpy,xw.root,xw.vis,AllocNone);
     xw.swa.colormap = xw.cmap;
     xw.swa.event_mask =
-        ExposureMask | KeyPressMask | KeyReleaseMask |
+		StructureNotifyMask | KeyPressMask | KeyReleaseMask |
         ButtonPress | ButtonReleaseMask| ButtonMotionMask |
         Button1MotionMask | Button3MotionMask | Button4MotionMask | Button5MotionMask|
         PointerMotionMask | KeymapStateMask | EnterWindowMask | LeaveWindowMask;
@@ -189,10 +191,10 @@ main(void)
     if (!rawfb) running = 0;
 
     #ifdef INCLUDE_STYLE
-    /*set_style(ctx, THEME_WHITE);*/
-    /*set_style(ctx, THEME_RED);*/
-    /*set_style(ctx, THEME_BLUE);*/
-    /*set_style(ctx, THEME_DARK);*/
+    /*set_style(&rawfb->ctx, THEME_WHITE);*/
+    /*set_style(&rawfb->ctx, THEME_RED);*/
+    /*set_style(&rawfb->ctx, THEME_BLUE);*/
+    /*set_style(&rawfb->ctx, THEME_DARK);*/
     #endif
 
     while (running) {
@@ -228,13 +230,13 @@ main(void)
 
         /* -------------- EXAMPLES ---------------- */
         #ifdef INCLUDE_CALCULATOR
-          calculator(ctx);
+          calculator(&rawfb->ctx);
         #endif
         #ifdef INCLUDE_OVERVIEW
-          overview(ctx);
+          overview(&rawfb->ctx);
         #endif
         #ifdef INCLUDE_NODE_EDITOR
-          node_editor(ctx);
+          node_editor(&rawfb->ctx);
         #endif
         /* ----------------------------------------- */
 

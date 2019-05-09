@@ -1,0 +1,11 @@
+2019 May 8
+	* added fg text dimmer (dim 25%) on in x11_rawfb/nuklear_rawfb.h
+	* add NK_XLIBSHM_USEFALLBACK to draw to rawfb but use X11 images to eliminate flicker with XShm
+	* include all demos in x11 and x11_rawfb
+	* fixed various bugs in demo/x11 and demo/x11_rawfb drivers
+		* fix XDestroyImage duplicate free() bug in x11_rawfb nuklear_xlib.h
+		* removed Expose and fixed ConfigureNotify for proper x11 and x11_rawfb resize event handling
+		* fix nuklear_rawfb.h minor typos for compilation
+		* add Xlib include and lib paths in Makefiles
+2019 May 5
+	* forked from official nuklear repo (last commit 2019 March 1)

@@ -2,6 +2,7 @@
  * MIT License
  *
  * Copyright (c) 2016-2017 Patrick Rudolph <siro@das-labor.org>
+ * Copyright (c) 2019 Greg Haerr <greg@censoft.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -73,12 +74,12 @@ static unsigned int
 nk_color_from_byte(const nk_byte *c)
 {
     unsigned int res = 0;
-#if defined(RAWFB_RGBX_8888)
-    res |= (unsigned int)c[0] << 16;
-    res |= (unsigned int)c[1] << 8;
-    res |= (unsigned int)c[2] << 0;
-#elif defined(RAWFB_XRGB_8888)
-    res = ((unsigned int *)c)[0];
+#if defined(RAWFB_RGBX_8888)			/* 0RGB in register, BGRX in memory*/
+    res |= (unsigned int)c[0] << 16;	/* B*/
+    res |= (unsigned int)c[1] << 8;		/* G*/
+    res |= (unsigned int)c[2] << 0;		/* R*/
+#elif defined(RAWFB_XRGB_8888)			/* ABGR in register, RGBA in memory*/
+    res = ((unsigned int *)c)[0];		/* R,G,B,A in struct -> ABGR in res*/
 #else
 #error Define one of RAWFB_RGBX_8888 , RAWFB_XRGB_8888
 #endif
@@ -746,7 +747,7 @@ nk_rawfb_init(void *fb, void *tex_mem, const unsigned int w, const unsigned int 
 static void
 nk_rawfb_stretch_image(const struct rawfb_image *dst,
     const struct rawfb_image *src, const struct nk_rect *dst_rect,
-    const struct nk_rect *src_rect, const struct nk_rect *dst_scissors)
+    const struct nk_rect *src_rect, const struct nk_rect *dst_scissors, const int newalpha)
 {
     short i, j;
     struct nk_color col;
@@ -765,6 +766,10 @@ nk_rawfb_stretch_image(const struct rawfb_image *dst,
                     continue;
             }
             col = nk_image_getpixel(src, (int)xoff, (int) yoff);
+
+			/* dim bright text if new alpha passed*/
+			if (newalpha && (col.a == 255))
+				col.a = newalpha;
             nk_image_blendpixel(dst, i + (int)(dst_rect->x + 0.5f), j + (int)(dst_rect->y + 0.5f), col);
             xoff += xinc;
         }
@@ -843,9 +848,9 @@ nk_rawfb_draw_text(const struct rawfb_context *rawfb,
         dst_rect.w = ceilf(g.width);
         dst_rect.h = ceilf(g.height);
 
-        /* TODO: account fg */
+        /* dim text foreground to 75% using 3/4 (=192/256) alpha*/
         /* Use software rescaling to blit glyph from font_text to framebuffer */
-        nk_rawfb_stretch_image(&rawfb->fb, &rawfb->font_tex, &dst_rect, &src_rect, &rawfb->scissors);
+        nk_rawfb_stretch_image(&rawfb->fb, &rawfb->font_tex, &dst_rect, &src_rect, &rawfb->scissors, 192);
 
         /* offset next glyph */
         text_len += glyph_len;
@@ -872,7 +877,7 @@ nk_rawfb_drawimage(const struct rawfb_context *rawfb,
     dst_rect.y = y;
     dst_rect.w = w;
     dst_rect.h = h;
-    nk_rawfb_stretch_image(&rawfb->fb, &rawfb->font_tex, &dst_rect, &src_rect, &rawfb->scissors);
+    nk_rawfb_stretch_image(&rawfb->fb, &rawfb->font_tex, &dst_rect, &src_rect, &rawfb->scissors, 0);
 }
 
 NK_API void

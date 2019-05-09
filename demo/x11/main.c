@@ -76,7 +76,7 @@ sleep_for(long t)
  * ===============================================================*/
 /* This are some code examples to provide a small overview of what can be
  * done with this library. To try out an example uncomment the defines */
-/*#define INCLUDE_ALL */
+#define INCLUDE_ALL
 /*#define INCLUDE_STYLE */
 /*#define INCLUDE_CALCULATOR */
 /*#define INCLUDE_OVERVIEW */
@@ -127,7 +127,7 @@ main(void)
 
     xw.swa.colormap = xw.cmap;
     xw.swa.event_mask =
-        ExposureMask | KeyPressMask | KeyReleaseMask |
+        StructureNotifyMask | KeyPressMask | KeyReleaseMask |
         ButtonPress | ButtonReleaseMask| ButtonMotionMask |
         Button1MotionMask | Button3MotionMask | Button4MotionMask | Button5MotionMask|
         PointerMotionMask | KeymapStateMask;

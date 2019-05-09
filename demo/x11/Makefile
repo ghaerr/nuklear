@@ -3,6 +3,7 @@ BIN = zahnrad
 
 # Flags
 CFLAGS += -std=c89 -pedantic -O2
+CFLAGS += -I/opt/X11/include -L/opt/X11/lib
 
 SRC = main.c
 OBJ = $(SRC:.c=.o)

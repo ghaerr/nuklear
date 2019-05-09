@@ -787,7 +787,7 @@ nk_xlib_handle_event(Display *dpy, int screen, Window win, XEvent *evt)
             XWarpPointer(xlib.dpy, None, xlib.surf->root, 0, 0, 0, 0, (int)ctx->input.mouse.pos.x, (int)ctx->input.mouse.pos.y);
         }
         return 1;
-    } else if (evt->type == Expose || evt->type == ConfigureNotify) {
+    } else if (evt->type == ConfigureNotify) {
         /* Window resize handler */
         unsigned int width, height;
         XWindowAttributes attr;

@@ -2,6 +2,7 @@
  * MIT License
  *
  * Copyright (c) 2016-2017 Patrick Rudolph <siro@das-labor.org>
+ * Copyright (c) 2019 Greg Haerr <greg@censoft.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -88,6 +89,9 @@ nk_xlib_init(Display *dpy, Visual *vis, int screen, Window root,
     xlib.cursor = XCreatePixmapCursor(dpy, blank, blank, &dummy, &dummy, 0, 0);
     XFreePixmap(dpy, blank);}
 
+#ifdef NK_XLIBSHM_USEFALLBACK
+    xlib.fallback = True;
+#else
     xlib.fallback = False;
     do {/* Initialize shared memory according to:
          * https://www.x.org/archive/X11R7.5/doc/Xext/mit-shm.html */
@@ -124,6 +128,7 @@ nk_xlib_init(Display *dpy, Visual *vis, int screen, Window root,
         } XSync(dpy, False);
         shmctl(xlib.xsi.shmid, IPC_RMID, NULL);
     } while(0);
+#endif /* NK_XLIBSHM_USEFALLBACK*/
 
     if (xlib.fallback) {
         xlib.ximg = XCreateImage(dpy, vis, depth, ZPixmap, 0, NULL, w, h, 32, 0);
@@ -232,7 +237,7 @@ nk_xlib_handle_event(Display *dpy, int screen, Window win, XEvent *evt, struct r
             rawfb->ctx.input.mouse.pos.y = rawfb->ctx.input.mouse.prev.y;
             XWarpPointer(xlib.dpy, None, xlib.root, 0, 0, 0, 0, (int)rawfb->ctx.input.mouse.pos.x, (int)rawfb->ctx.input.mouse.pos.y);
         } return 1;
-    } else if (evt->type == Expose || evt->type == ConfigureNotify) {
+    } else if (evt->type == ConfigureNotify) {
         /* Window resize handler */
         void *fb;
         unsigned int width, height;
@@ -260,14 +265,14 @@ nk_xlib_shutdown(void)
 {
     XFreeCursor(xlib.dpy, xlib.cursor);
     if (xlib.fallback) {
-        free(xlib.ximg->data);
-        XDestroyImage(xlib.ximg);
+        XDestroyImage(xlib.ximg);		/* frees ximg->data also*/
     } else {
         XShmDetach(xlib.dpy, &xlib.xsi);
         XDestroyImage(xlib.ximg);
         shmdt(xlib.xsi.shmaddr);
         shmctl(xlib.xsi.shmid, IPC_RMID, NULL);
-    } nk_memset(&xlib, 0, sizeof(xlib));
+    }
+	nk_memset(&xlib, 0, sizeof(xlib));
 }
 
 NK_API void
