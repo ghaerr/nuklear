@@ -4,7 +4,7 @@ BIN = demo
 # Flags
 CFLAGS += -std=c99 -pedantic -O2
 
-SRC = main.c
+SRC = main.c startup.c
 OBJ = $(SRC:.c=.o)
 
 # TODO: Handle Windows build
@@ -12,7 +12,7 @@ OBJ = $(SRC:.c=.o)
 #BIN := $(BIN).exe
 #LIBS = -lglfw3 -lopengl32 -lm -lGLU32 -lGLEW32
 #else
-LIBS = -lallegro -lallegro_main -lallegro_image -lallegro_font \
+LIBS = -lallegro -lallegro_image -lallegro_font \
 	-lallegro_ttf -lallegro_primitives -lm
 #endif
 

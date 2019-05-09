@@ -1,3 +1,5 @@
+2019 May 9
+	* added call to al_run_main in main() to fix allegro5 port on OSX
 2019 May 8
 	* added fg text dimmer (dim 25%) on in x11_rawfb/nuklear_rawfb.h
 	* add NK_XLIBSHM_USEFALLBACK to draw to rawfb but use X11 images to eliminate flicker with XShm
