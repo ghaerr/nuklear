@@ -1,4 +1,5 @@
 2019 May 9
+	* initial port to Nano-X in demo/nanox
 	* added call to al_run_main in main() to fix allegro5 port on OSX
 2019 May 8
 	* added fg text dimmer (dim 25%) on in x11_rawfb/nuklear_rawfb.h

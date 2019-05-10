@@ -1,0 +1,13 @@
+check clipping if working, printf in nano-X server
+make resize realloc buffer in window
+invisible cursor
+add scrollwheel handling
+cursor move seems slow
+	trying to move NX window doesn't work well
+add image handling
+rename xlib_ routines etc
+
+bug: mouse down works only in small area?
+
+Add GrSetLineAttributes API
+consider adding NXDrawArc routines into nano-X
