@@ -1,3 +1,6 @@
+2019 May 12
+	* perfect roundrect drawing coordinate handling for Nano-X
+	* cleanup unused Nano-X mouse grab code
 2019 May 11
 	* add mouse scroll wheel handling to Nano-X
 2019 May 9

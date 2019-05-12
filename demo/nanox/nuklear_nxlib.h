@@ -275,7 +275,7 @@ nk_xsurf_stroke_rect(NXSurface* surf, short x, short y, unsigned short w,
     GrSetGCForeground(surf->gc, c);
     //XSetLineAttributes(surf->dpy, surf->gc, line_thickness, LineSolid, CapButt, JoinMiter);
     if (r == 0) {
-		GrRect(surf->wid, surf->gc, x, y, w+1, h+1);	//FIXME note +1 for width/height
+		GrRect(surf->wid, surf->gc, x, y, w+1, h+1);	/* FIXME note +1 for width/height*/
 		return;
 	}
 
@@ -306,6 +306,9 @@ nk_xsurf_fill_rect(NXSurface* surf, short x, short y, unsigned short w,
 {
     unsigned long c = nk_color_from_byte(&col.r);
     GrSetGCForeground(surf->gc, c);
+
+	w--, h--;			/* required for exact roundrect fill*/
+
     if (r == 0) {
 		GrFillRect(surf->wid, surf->gc, x, y, w, h);
 		return;
@@ -693,13 +696,14 @@ nk_xlib_init(NXFont *nxfont, GR_WINDOW_ID wid, unsigned int w, unsigned int h)
     font->height = (float)nxfont->height;
     font->width = nk_xfont_get_text_width;
 
+#if 0
     /* create invisible cursor */
-    //{static XColor dummy; char data[1] = {0};
-    //Pixmap blank = XCreateBitmapFromData(dpy, root, data, 1, 1);
-    //if (blank == None) return 0;
-    //xlib.cursor = XCreatePixmapCursor(dpy, blank, blank, &dummy, &dummy, 0, 0);
-    //XFreePixmap(dpy, blank);}
-
+    {static XColor dummy; char data[1] = {0};
+    Pixmap blank = XCreateBitmapFromData(dpy, root, data, 1, 1);
+    if (blank == None) return 0;
+    xlib.cursor = XCreatePixmapCursor(dpy, blank, blank, &dummy, &dummy, 0, 0);
+    XFreePixmap(dpy, blank);}
+#endif
     nxlib.surf = nk_xsurf_create(wid, w, h);
 	nxlib.wid = wid;
     nk_init_default(&nxlib.ctx, font);
@@ -734,16 +738,19 @@ nk_xlib_handle_event(GR_EVENT *evt)
 	if (evt->type == GR_EVENT_TYPE_NONE) return 0;
 //printf("got %d %d,%d %d\n", evt->type, evt->update.wid, evt->update.subwid, evt->update.utype);
 //if (evt->mouse.wid != nxlib.wid) { printf("ERROR type %d bad wid %d,%d\n", evt->type, evt->mouse.wid, nxlib.wid); return 0; }
+
+#if 0
     /* optional grabbing behavior */
     if (ctx->input.mouse.grab) {
-        //XDefineCursor(xlib.dpy, xlib.root, xlib.cursor);
+        XDefineCursor(xlib.dpy, xlib.root, xlib.cursor);
         ctx->input.mouse.grab = 0;
     } else if (ctx->input.mouse.ungrab) {
-        //XWarpPointer(xlib.dpy, None, xlib.root, 0, 0, 0, 0,
-            //(int)ctx->input.mouse.prev.x, (int)ctx->input.mouse.prev.y);
-        //XUndefineCursor(xlib.dpy, xlib.root);
+        XWarpPointer(xlib.dpy, None, xlib.root, 0, 0, 0, 0,
+            (int)ctx->input.mouse.prev.x, (int)ctx->input.mouse.prev.y);
+        XUndefineCursor(xlib.dpy, xlib.root);
         ctx->input.mouse.ungrab = 0;
     }
+#endif
 
     if (evt->type == GR_EVENT_TYPE_KEY_DOWN || evt->type == GR_EVENT_TYPE_KEY_UP)
     {
@@ -832,11 +839,14 @@ nk_xlib_handle_event(GR_EVENT *evt)
         /* Mouse motion handler */
         const int x = evt->mouse.x, y = evt->mouse.y;
         nk_input_motion(ctx, x, y);
+#if 0
         if (ctx->input.mouse.grabbed) {
             ctx->input.mouse.pos.x = ctx->input.mouse.prev.x;
             ctx->input.mouse.pos.y = ctx->input.mouse.prev.y;
-            //XWarpPointer(xlib.dpy, None, xlib.surf->root, 0, 0, 0, 0, (int)ctx->input.mouse.pos.x, (int)ctx->input.mouse.pos.y);
+            XWarpPointer(xlib.dpy, None, xlib.surf->root, 0, 0, 0, 0,
+				(int)ctx->input.mouse.pos.x, (int)ctx->input.mouse.pos.y);
         }
+#endif
         return 1;
     }
 #if 0
@@ -859,7 +869,7 @@ nk_xlib_shutdown(void)
 {
     nk_xsurf_del(nxlib.surf);
     nk_free(&nxlib.ctx);
-    //XFreeCursor(xlib.dpy, xlib.cursor);
+    /*XFreeCursor(xlib.dpy, xlib.cursor);*/
     nk_memset(&nxlib.ctx, 0, sizeof(nxlib.ctx));
 }
 
