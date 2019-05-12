@@ -1,3 +1,5 @@
+2019 May 11
+	* add mouse scroll wheel handling to Nano-X
 2019 May 9
 	* initial port to Nano-X in demo/nanox
 	* added call to al_run_main in main() to fix allegro5 port on OSX

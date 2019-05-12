@@ -105,6 +105,7 @@ struct NXSurface {
 
 static struct {
     struct nk_context ctx;
+	GR_WINDOW_ID wid;
     struct NXSurface *surf;
     long last_button_click;
 } nxlib;
@@ -700,6 +701,7 @@ nk_xlib_init(NXFont *nxfont, GR_WINDOW_ID wid, unsigned int w, unsigned int h)
     //XFreePixmap(dpy, blank);}
 
     nxlib.surf = nk_xsurf_create(wid, w, h);
+	nxlib.wid = wid;
     nk_init_default(&nxlib.ctx, font);
     return &nxlib.ctx;
 }
@@ -728,18 +730,21 @@ NK_API int
 nk_xlib_handle_event(GR_EVENT *evt)
 {
     struct nk_context *ctx = &nxlib.ctx;
-#if 0
+
+	if (evt->type == GR_EVENT_TYPE_NONE) return 0;
+//printf("got %d %d,%d %d\n", evt->type, evt->update.wid, evt->update.subwid, evt->update.utype);
+//if (evt->mouse.wid != nxlib.wid) { printf("ERROR type %d bad wid %d,%d\n", evt->type, evt->mouse.wid, nxlib.wid); return 0; }
     /* optional grabbing behavior */
     if (ctx->input.mouse.grab) {
-        XDefineCursor(xlib.dpy, xlib.root, xlib.cursor);
+        //XDefineCursor(xlib.dpy, xlib.root, xlib.cursor);
         ctx->input.mouse.grab = 0;
     } else if (ctx->input.mouse.ungrab) {
-        XWarpPointer(xlib.dpy, None, xlib.root, 0, 0, 0, 0,
-            (int)ctx->input.mouse.prev.x, (int)ctx->input.mouse.prev.y);
-        XUndefineCursor(xlib.dpy, xlib.root);
+        //XWarpPointer(xlib.dpy, None, xlib.root, 0, 0, 0, 0,
+            //(int)ctx->input.mouse.prev.x, (int)ctx->input.mouse.prev.y);
+        //XUndefineCursor(xlib.dpy, xlib.root);
         ctx->input.mouse.ungrab = 0;
     }
-#endif
+
     if (evt->type == GR_EVENT_TYPE_KEY_DOWN || evt->type == GR_EVENT_TYPE_KEY_UP)
     {
         /* Key handler */
@@ -802,7 +807,12 @@ nk_xlib_handle_event(GR_EVENT *evt)
         /* Button handler */
         int down = (evt->type == GR_EVENT_TYPE_BUTTON_DOWN);
         const int x = evt->button.x, y = evt->button.y;
-        if ((evt->button.buttons & GR_BUTTON_L) || (evt->button.changebuttons & GR_BUTTON_L)) {
+        if ((evt->button.buttons & GR_BUTTON_SCROLLUP) && down)
+            nk_input_scroll(ctx, nk_vec2(0, 1.0f));
+        else if ((evt->button.buttons & GR_BUTTON_SCROLLDN) && down)
+            nk_input_scroll(ctx, nk_vec2(0, -1.0f));
+        else if ((evt->button.buttons & GR_BUTTON_L)
+		      || (evt->button.changebuttons & GR_BUTTON_L)) {
             if (down) { /* Double-Click Button handler */
                 long dt = nk_timestamp() - nxlib.last_button_click;
                 if (dt > NK_X11_DOUBLE_CLICK_LO && dt < NK_X11_DOUBLE_CLICK_HI)
@@ -810,25 +820,23 @@ nk_xlib_handle_event(GR_EVENT *evt)
                 nxlib.last_button_click = nk_timestamp();
             } else nk_input_button(ctx, NK_BUTTON_DOUBLE, x, y, nk_false);
             nk_input_button(ctx, NK_BUTTON_LEFT, x, y, down);
-        } else if (evt->button.buttons & GR_BUTTON_M)
+        } else if ((evt->button.buttons & GR_BUTTON_M)
+		        || (evt->button.changebuttons & GR_BUTTON_M))
             nk_input_button(ctx, NK_BUTTON_MIDDLE, x, y, down);
-        else if (evt->button.buttons & GR_BUTTON_R)
+        else if ((evt->button.buttons & GR_BUTTON_R)
+		      || (evt->button.changebuttons & GR_BUTTON_R))
             nk_input_button(ctx, NK_BUTTON_RIGHT, x, y, down);
-        //else if (evt->xbutton.button == Button4)
-            //nk_input_scroll(ctx, nk_vec2(0, 1.0f));
-        //else if (evt->xbutton.button == Button5)
-            //nk_input_scroll(ctx, nk_vec2(0, -1.0f));
         else return 0;
         return 1;
     } else if (evt->type == GR_EVENT_TYPE_MOUSE_POSITION) {
         /* Mouse motion handler */
         const int x = evt->mouse.x, y = evt->mouse.y;
         nk_input_motion(ctx, x, y);
-        //if (ctx->input.mouse.grabbed) {
-            //ctx->input.mouse.pos.x = ctx->input.mouse.prev.x;
-            //ctx->input.mouse.pos.y = ctx->input.mouse.prev.y;
+        if (ctx->input.mouse.grabbed) {
+            ctx->input.mouse.pos.x = ctx->input.mouse.prev.x;
+            ctx->input.mouse.pos.y = ctx->input.mouse.prev.y;
             //XWarpPointer(xlib.dpy, None, xlib.surf->root, 0, 0, 0, 0, (int)ctx->input.mouse.pos.x, (int)ctx->input.mouse.pos.y);
-        //}
+        }
         return 1;
     }
 #if 0

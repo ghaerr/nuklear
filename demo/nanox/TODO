@@ -1,13 +1,12 @@
-check clipping if working, printf in nano-X server
+nuklear:
 make resize realloc buffer in window
 invisible cursor
-add scrollwheel handling
-cursor move seems slow
-	trying to move NX window doesn't work well
 add image handling
 rename xlib_ routines etc
+fix cursor grab code in nanox and x11 from x11_raw
 
-bug: mouse down works only in small area?
 
+nano-X:
 Add GrSetLineAttributes API
 consider adding NXDrawArc routines into nano-X
+cursor move seems slow in X11 only, trying to move NX window doesn't work well
