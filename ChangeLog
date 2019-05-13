@@ -1,4 +1,5 @@
 2019 May 12
+	* add window resize handling for Nano-X, cleanup
 	* perfect roundrect drawing coordinate handling for Nano-X
 	* cleanup unused Nano-X mouse grab code
 2019 May 11

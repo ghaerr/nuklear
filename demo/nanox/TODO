@@ -1,9 +1,6 @@
 nuklear:
-make resize realloc buffer in window
-invisible cursor
 add image handling
 rename xlib_ routines etc
-fix cursor grab code in nanox and x11 from x11_raw
 
 
 nano-X:

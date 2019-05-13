@@ -63,7 +63,6 @@ NK_API void                 nk_xfont_del(NXFont *font);
  * ===============================================================
  */
 #ifdef NK_XLIB_IMPLEMENTATION
-#include "nano-X.h"
 
 #include <sys/time.h>
 #include <unistd.h>
@@ -78,13 +77,14 @@ NK_API void                 nk_xfont_del(NXFont *font);
 #include "../../example/stb_image.h"
 #endif
 
-
 #ifndef NK_X11_DOUBLE_CLICK_LO
 #define NK_X11_DOUBLE_CLICK_LO 20
 #endif
 #ifndef NK_X11_DOUBLE_CLICK_HI
 #define NK_X11_DOUBLE_CLICK_HI 200
 #endif
+
+#define GrSetGCLineAttributesEx(gc, thickness, line_type, cap_type, join_type)	/* not implemented yet*/
 
 struct NXFont {
 	GR_FONT_ID fontid;
@@ -143,31 +143,24 @@ nk_xsurf_create(GR_WINDOW_ID wid, unsigned int w, unsigned int h)
     surface->w = w;
     surface->h = h;
 	GrSetGCUseBackground(surface->gc, GR_FALSE);
-    //XSetLineAttributes(xlib.dpy, surface->gc, 1, LineSolid, CapButt, JoinMiter);
     return surface;
 }
 
-#if 0000
 NK_INTERN void
 nk_xsurf_resize(NXSurface *surf, unsigned int w, unsigned int h)
 {
     if(!surf) return;
-    if (surf->w == w && surf->h == h) return;
     surf->w = w; surf->h = h;
-    if(surf->drawable) XFreePixmap(surf->dpy, surf->drawable);
-    surf->drawable = XCreatePixmap(surf->dpy, surf->root, w, h,
-        (unsigned int)DefaultDepth(surf->dpy, surf->screen));
 }
-#endif
 
 NK_INTERN void
 nk_xsurf_scissor(NXSurface *surf, float x, float y, float w, float h)
 {
     GR_RECT clip_rect;
-    clip_rect.x = (short)(x-1);		//FIXME
-    clip_rect.y = (short)(y-1);
-    clip_rect.width = (unsigned short)(w+2);
-    clip_rect.height = (unsigned short)(h+2);
+    clip_rect.x = (short)x - 1;
+    clip_rect.y = (short)y - 1;
+    clip_rect.width = (unsigned short)w + 2;
+    clip_rect.height = (unsigned short)h + 2;
 	if (surf->clip)
 		GrDestroyRegion(surf->clip);
 	surf->clip = GrNewRegion();
@@ -181,9 +174,8 @@ nk_xsurf_stroke_line(NXSurface *surf, short x0, short y0, short x1,
 {
     unsigned long c = nk_color_from_byte(&col.r);
     GrSetGCForeground(surf->gc, c);
-    //XSetLineAttributes(surf->dpy, surf->gc, line_thickness, LineSolid, CapButt, JoinMiter);
+    GrSetGCLineAttributesEx(surf->gc, line_thickness, GR_LINESOLID, GR_CAPBUTT, GR_JOINMITER);
     GrLine(surf->wid, surf->gc, (int)x0, (int)y0, (int)x1, (int)y1);
-    //XSetLineAttributes(surf->dpy, surf->gc, 1, LineSolid, CapButt, JoinMiter);
 }
 
 /*
@@ -273,7 +265,7 @@ nk_xsurf_stroke_rect(NXSurface* surf, short x, short y, unsigned short w,
     unsigned long c = nk_color_from_byte(&col.r);
 
     GrSetGCForeground(surf->gc, c);
-    //XSetLineAttributes(surf->dpy, surf->gc, line_thickness, LineSolid, CapButt, JoinMiter);
+    GrSetGCLineAttributesEx(surf->gc, line_thickness, GR_LINESOLID, GR_CAPBUTT, GR_JOINMITER);
     if (r == 0) {
 		GrRect(surf->wid, surf->gc, x, y, w+1, h+1);	/* FIXME note +1 for width/height*/
 		return;
@@ -297,7 +289,6 @@ nk_xsurf_stroke_rect(NXSurface* surf, short x, short y, unsigned short w,
         (unsigned)r*2, (unsigned)2*r, 180 * 64, 90 * 64);
     GrDrawArc(surf->wid, surf->gc, xc + wc - r, yc + hc - r,
         (unsigned)r*2, (unsigned)2*r, -90 * 64, 90 * 64);}
-    //XSetLineAttributes(surf->dpy, surf->gc, 1, LineSolid, CapButt, JoinMiter);
 }
 
 NK_INTERN void
@@ -383,11 +374,10 @@ nk_xsurf_stroke_triangle(NXSurface *surf, short x0, short y0, short x1,
     unsigned long c = nk_color_from_byte(&col.r);
 
     GrSetGCForeground(surf->gc, c);
-    //XSetLineAttributes(surf->dpy, surf->gc, line_thickness, LineSolid, CapButt, JoinMiter);
+    GrSetGCLineAttributesEx(surf->gc, line_thickness, GR_LINESOLID, GR_CAPBUTT, GR_JOINMITER);
     GrLine(surf->wid, surf->gc, x0, y0, x1, y1);
     GrLine(surf->wid, surf->gc, x1, y1, x2, y2);
     GrLine(surf->wid, surf->gc, x2, y2, x0, y0);
-    //XSetLineAttributes(surf->dpy, surf->gc, 1, LineSolid, CapButt, JoinMiter);
 }
 
 NK_INTERN void
@@ -416,11 +406,10 @@ nk_xsurf_stroke_polygon(NXSurface *surf, const struct nk_vec2i *pnts, int count,
     unsigned long c = nk_color_from_byte(&col.r);
 
     GrSetGCForeground(surf->gc, c);
-    //XSetLineAttributes(surf->dpy, surf->gc, line_thickness, LineSolid, CapButt, JoinMiter);
+    GrSetGCLineAttributesEx(surf->gc, line_thickness, GR_LINESOLID, GR_CAPBUTT, GR_JOINMITER);
     for (i = 1; i < count; ++i)
         GrLine(surf->wid, surf->gc, pnts[i-1].x, pnts[i-1].y, pnts[i].x, pnts[i].y);
     GrLine(surf->wid, surf->gc, pnts[count-1].x, pnts[count-1].y, pnts[0].x, pnts[0].y);
-    //XSetLineAttributes(surf->dpy, surf->gc, 1, LineSolid, CapButt, JoinMiter);
 }
 
 NK_INTERN void
@@ -430,11 +419,10 @@ nk_xsurf_stroke_polyline(NXSurface *surf, const struct nk_vec2i *pnts,
     int i = 0;
     unsigned long c = nk_color_from_byte(&col.r);
 
-    //XSetLineAttributes(surf->dpy, surf->gc, line_thickness, LineSolid, CapButt, JoinMiter);
+    GrSetGCLineAttributesEx(surf->gc, line_thickness, GR_LINESOLID, GR_CAPBUTT, GR_JOINMITER);
     GrSetGCForeground(surf->gc, c);
     for (i = 0; i < count-1; ++i)
         GrLine(surf->wid, surf->gc, pnts[i].x, pnts[i].y, pnts[i+1].x, pnts[i+1].y);
-    //XSetLineAttributes(surf->dpy, surf->gc, 1, LineSolid, CapButt, JoinMiter);
 }
 
 NK_INTERN void
@@ -458,9 +446,8 @@ nk_xsurf_stroke_circle(NXSurface *surf, short x, short y, unsigned short w,
 	int ry = h/2 - 1;
 
     GrSetGCForeground(surf->gc, c);
-    //XSetLineAttributes(surf->dpy, surf->gc, line_thickness, LineSolid, CapButt, JoinMiter);
+    GrSetGCLineAttributesEx(surf->gc, line_thickness, GR_LINESOLID, GR_CAPBUTT, GR_JOINMITER);
 	GrEllipse(surf->wid, surf->gc, x+rx, y+ry, rx, ry);
-    //XSetLineAttributes(surf->dpy, surf->gc, 1, LineSolid, CapButt, JoinMiter);
 }
 
 NK_INTERN void
@@ -472,7 +459,7 @@ nk_xsurf_stroke_curve(NXSurface *surf, struct nk_vec2i p1,
     float t_step;
     struct nk_vec2i last = p1;
 
-    //XSetLineAttributes(surf->dpy, surf->gc, line_thickness, LineSolid, CapButt, JoinMiter);
+    GrSetGCLineAttributesEx(surf->gc, line_thickness, GR_LINESOLID, GR_CAPBUTT, GR_JOINMITER);
     num_segments = NK_MAX(num_segments, 1);
     t_step = 1.0f/(float)num_segments;
     for (i_step = 1; i_step <= num_segments; ++i_step) {
@@ -487,7 +474,6 @@ nk_xsurf_stroke_curve(NXSurface *surf, struct nk_vec2i p1,
         nk_xsurf_stroke_line(surf, last.x, last.y, (short)x, (short)y, line_thickness,col);
         last.x = (short)x; last.y = (short)y;
     }
-    //XSetLineAttributes(surf->dpy, surf->gc, 1, LineSolid, CapButt, JoinMiter);
 }
 
 NK_INTERN void
@@ -735,31 +721,17 @@ nk_xlib_handle_event(GR_EVENT *evt)
 {
     struct nk_context *ctx = &nxlib.ctx;
 
-	if (evt->type == GR_EVENT_TYPE_NONE) return 0;
-//printf("got %d %d,%d %d\n", evt->type, evt->update.wid, evt->update.subwid, evt->update.utype);
-//if (evt->mouse.wid != nxlib.wid) { printf("ERROR type %d bad wid %d,%d\n", evt->type, evt->mouse.wid, nxlib.wid); return 0; }
-
-#if 0
-    /* optional grabbing behavior */
-    if (ctx->input.mouse.grab) {
-        XDefineCursor(xlib.dpy, xlib.root, xlib.cursor);
-        ctx->input.mouse.grab = 0;
-    } else if (ctx->input.mouse.ungrab) {
-        XWarpPointer(xlib.dpy, None, xlib.root, 0, 0, 0, 0,
-            (int)ctx->input.mouse.prev.x, (int)ctx->input.mouse.prev.y);
-        XUndefineCursor(xlib.dpy, xlib.root);
-        ctx->input.mouse.ungrab = 0;
-    }
-#endif
-
+	if (evt->type == GR_EVENT_TYPE_NONE)
+		return 0;
     if (evt->type == GR_EVENT_TYPE_KEY_DOWN || evt->type == GR_EVENT_TYPE_KEY_UP)
     {
         /* Key handler */
         int ret, down = (evt->type == GR_EVENT_TYPE_KEY_DOWN);
 		MWKEY code = evt->keystroke.ch;
-        if (code == MWKEY_LSHIFT || code == MWKEY_RSHIFT) nk_input_key(ctx, NK_KEY_SHIFT, down);
+        if (code == MWKEY_LSHIFT || code == MWKEY_RSHIFT)
+		                                  nk_input_key(ctx, NK_KEY_SHIFT, down);
         else if (code == MWKEY_DELETE)    nk_input_key(ctx, NK_KEY_DEL, down);
-        else if (code == MWKEY_ENTER)    nk_input_key(ctx, NK_KEY_ENTER, down);
+        else if (code == MWKEY_ENTER)     nk_input_key(ctx, NK_KEY_ENTER, down);
         else if (code == MWKEY_TAB)       nk_input_key(ctx, NK_KEY_TAB, down);
         else if (code == MWKEY_LEFT)      nk_input_key(ctx, NK_KEY_LEFT, down);
         else if (code == MWKEY_RIGHT)     nk_input_key(ctx, NK_KEY_RIGHT, down);
@@ -767,8 +739,8 @@ nk_xlib_handle_event(GR_EVENT *evt)
         else if (code == MWKEY_DOWN)      nk_input_key(ctx, NK_KEY_DOWN, down);
         else if (code == MWKEY_BACKSPACE) nk_input_key(ctx, NK_KEY_BACKSPACE, down);
         else if (code == MWKEY_ESCAPE)    nk_input_key(ctx, NK_KEY_TEXT_RESET_MODE, down);
-        else if (code == MWKEY_PAGEUP)   nk_input_key(ctx, NK_KEY_SCROLL_UP, down);
-        else if (code == MWKEY_PAGEDOWN) nk_input_key(ctx, NK_KEY_SCROLL_DOWN, down);
+        else if (code == MWKEY_PAGEUP)    nk_input_key(ctx, NK_KEY_SCROLL_UP, down);
+        else if (code == MWKEY_PAGEDOWN)  nk_input_key(ctx, NK_KEY_SCROLL_DOWN, down);
         else if (code == MWKEY_HOME) {
             nk_input_key(ctx, NK_KEY_TEXT_START, down);
             nk_input_key(ctx, NK_KEY_SCROLL_START, down);
@@ -810,16 +782,30 @@ nk_xlib_handle_event(GR_EVENT *evt)
             }
         }
         return 1;
-    } else if (evt->type == GR_EVENT_TYPE_BUTTON_DOWN || evt->type == GR_EVENT_TYPE_BUTTON_UP) {
-        /* Button handler */
+    }
+	if (evt->type == GR_EVENT_TYPE_BUTTON_DOWN || evt->type == GR_EVENT_TYPE_BUTTON_UP)
+	{
+        /* Mouse button handler */
         int down = (evt->type == GR_EVENT_TYPE_BUTTON_DOWN);
         const int x = evt->button.x, y = evt->button.y;
+#if 0
+    	/* optional grabbing behavior */
+    	if (ctx->input.mouse.grab) {
+        	XDefineCursor(xlib.dpy, xlib.root, xlib.cursor);
+        	ctx->input.mouse.grab = 0;
+    	} else if (ctx->input.mouse.ungrab) {
+        	XWarpPointer(xlib.dpy, None, xlib.root, 0, 0, 0, 0,
+            	(int)ctx->input.mouse.prev.x, (int)ctx->input.mouse.prev.y);
+        	XUndefineCursor(xlib.dpy, xlib.root);
+        	ctx->input.mouse.ungrab = 0;
+    	}
+#endif
         if ((evt->button.buttons & GR_BUTTON_SCROLLUP) && down)
             nk_input_scroll(ctx, nk_vec2(0, 1.0f));
         else if ((evt->button.buttons & GR_BUTTON_SCROLLDN) && down)
             nk_input_scroll(ctx, nk_vec2(0, -1.0f));
-        else if ((evt->button.buttons & GR_BUTTON_L)
-		      || (evt->button.changebuttons & GR_BUTTON_L)) {
+        else if ((evt->button.buttons & GR_BUTTON_L) || (evt->button.changebuttons & GR_BUTTON_L))
+		{
             if (down) { /* Double-Click Button handler */
                 long dt = nk_timestamp() - nxlib.last_button_click;
                 if (dt > NK_X11_DOUBLE_CLICK_LO && dt < NK_X11_DOUBLE_CLICK_HI)
@@ -827,15 +813,16 @@ nk_xlib_handle_event(GR_EVENT *evt)
                 nxlib.last_button_click = nk_timestamp();
             } else nk_input_button(ctx, NK_BUTTON_DOUBLE, x, y, nk_false);
             nk_input_button(ctx, NK_BUTTON_LEFT, x, y, down);
-        } else if ((evt->button.buttons & GR_BUTTON_M)
-		        || (evt->button.changebuttons & GR_BUTTON_M))
+        }
+		else if ((evt->button.buttons & GR_BUTTON_M) || (evt->button.changebuttons & GR_BUTTON_M))
             nk_input_button(ctx, NK_BUTTON_MIDDLE, x, y, down);
-        else if ((evt->button.buttons & GR_BUTTON_R)
-		      || (evt->button.changebuttons & GR_BUTTON_R))
+        else if ((evt->button.buttons & GR_BUTTON_R) || (evt->button.changebuttons & GR_BUTTON_R))
             nk_input_button(ctx, NK_BUTTON_RIGHT, x, y, down);
         else return 0;
         return 1;
-    } else if (evt->type == GR_EVENT_TYPE_MOUSE_POSITION) {
+    }
+	if (evt->type == GR_EVENT_TYPE_MOUSE_POSITION)
+	{
         /* Mouse motion handler */
         const int x = evt->mouse.x, y = evt->mouse.y;
         nk_input_motion(ctx, x, y);
@@ -849,18 +836,14 @@ nk_xlib_handle_event(GR_EVENT *evt)
 #endif
         return 1;
     }
-#if 0
-	else if (evt->type == ConfigureNotify) {
+	if (evt->type == GR_EVENT_TYPE_UPDATE)
+	{
         /* Window resize handler */
-        unsigned int width, height;
-        XWindowAttributes attr;
-        XGetWindowAttributes(dpy, win, &attr);
-        width = (unsigned int)attr.width;
-        height = (unsigned int)attr.height;
-        nk_xsurf_resize(xlib.surf, width, height);
+		if (evt->update.wid == nxlib.wid && evt->update.utype == GR_UPDATE_SIZE)
+        	nk_xsurf_resize(nxlib.surf, evt->update.width, evt->update.height);
         return 1;
     }
-#endif
+
     return 0;
 }
 
@@ -961,6 +944,5 @@ nk_xlib_render(GR_WINDOW_ID win, struct nk_color clear)
         }
     }
     nk_clear(ctx);
-    //nk_xsurf_blit(screen, surf, surf->w, surf->h);
 }
 #endif

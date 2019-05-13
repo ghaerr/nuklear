@@ -53,8 +53,6 @@ typedef struct NXWindow NXWindow;
 struct NXWindow {
     GR_WINDOW_ID win;
     NXFont *font;
-    unsigned int width;
-    unsigned int height;
 };
 
 static void
@@ -133,25 +131,25 @@ main(void)
     int running = 1;
     NXWindow nxw;
     struct nk_context *ctx;
+	GR_WM_PROPS props;
 
     /* Nano-X*/
     memset(&nxw, 0, sizeof nxw);
 	if (GrOpen() < 0)
     	die("Unable to open graphics");
 
-	nxw.win = GrNewBufferedWindow(GR_WM_PROPS_APPWINDOW, "Microwindows", GR_ROOT_WINDOW_ID,
+	/*props = GR_WM_PROPS_CAPTION | GR_WM_PROPS_BORDER;*/
+	props = GR_WM_PROPS_APPWINDOW;
+	nxw.win = GrNewBufferedWindow(props, "Nuklear on Microwindows", GR_ROOT_WINDOW_ID,
 		0, 0, WINDOW_WIDTH, WINDOW_HEIGHT, GR_RGB(30,30,30));
 	GrSelectEvents(nxw.win, GR_EVENT_MASK_CLOSE_REQ | GR_EVENT_MASK_UPDATE |
 		GR_EVENT_MASK_KEY_DOWN | GR_EVENT_MASK_KEY_UP |
 		GR_EVENT_MASK_BUTTON_DOWN | GR_EVENT_MASK_BUTTON_UP | GR_EVENT_MASK_MOUSE_POSITION);
 	GrMapWindow(nxw.win);
 
-    nxw.width = WINDOW_WIDTH;
-    nxw.height = WINDOW_HEIGHT;
-
     /* GUI */
     nxw.font = nk_xfont_create(GR_FONT_SYSTEM_VAR);
-    ctx = nk_xlib_init(nxw.font, nxw.win, nxw.width, nxw.height);
+    ctx = nk_xlib_init(nxw.font, nxw.win, WINDOW_WIDTH, WINDOW_HEIGHT);
 
     #ifdef INCLUDE_STYLE
     /*set_style(ctx, THEME_WHITE);*/
