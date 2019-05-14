@@ -39,8 +39,8 @@
 #define NK_INCLUDE_STANDARD_VARARGS
 #define NK_INCLUDE_DEFAULT_ALLOCATOR
 #define NK_IMPLEMENTATION
-#define NK_XLIB_IMPLEMENTATION
-/*#define NK_XLIB_INCLUDE_STB_IMAGE*/
+#define NK_NANOX_IMPLEMENTATION
+/*#define NK_NANOX_INCLUDE_STB_IMAGE*/
 #include "../../nuklear.h"
 #include "nano-X.h"
 #include "nuklear_nxlib.h"
@@ -53,17 +53,6 @@ struct NXWindow {
     GR_WINDOW_ID win;
     NXFont *font;
 };
-
-static void
-die(const char *fmt, ...)
-{
-    va_list ap;
-    va_start(ap, fmt);
-    vfprintf(stderr, fmt, ap);
-    va_end(ap);
-    fputs("\n", stderr);
-    exit(EXIT_FAILURE);
-}
 
 /* ===============================================================
  *
@@ -113,8 +102,10 @@ main(void)
 
     /* Nano-X*/
     memset(&nxw, 0, sizeof nxw);
-	if (GrOpen() < 0)
-    	die("Unable to open graphics");
+	if (GrOpen() < 0) {
+    	fputs("Unable to open graphics", stderr);
+		exit(EXIT_FAILURE);
+	}
 
 	/*props = GR_WM_PROPS_CAPTION | GR_WM_PROPS_BORDER;*/
 	props = GR_WM_PROPS_APPWINDOW;
@@ -126,8 +117,8 @@ main(void)
 	GrMapWindow(nxw.win);
 
     /* GUI */
-    nxw.font = nk_xfont_create(GR_FONT_SYSTEM_VAR);
-    ctx = nk_xlib_init(nxw.font, nxw.win, WINDOW_WIDTH, WINDOW_HEIGHT);
+    nxw.font = nk_nxfont_create(GR_FONT_SYSTEM_VAR);
+    ctx = nk_nxlib_init(nxw.font, nxw.win, WINDOW_WIDTH, WINDOW_HEIGHT);
 
     #ifdef INCLUDE_STYLE
     /*set_style(ctx, THEME_WHITE);*/
@@ -145,7 +136,7 @@ main(void)
 			GrGetNextEvent(&evt);
             if (evt.type == GR_EVENT_TYPE_CLOSE_REQ)
 				running = 0;
-            nk_xlib_handle_event(&evt);
+            nk_nxlib_handle_event(&evt);
         }
         while (running && GrPeekEvent(&evt));
         nk_input_end(ctx);
@@ -164,7 +155,7 @@ main(void)
 
             nk_layout_row_static(ctx, 30, 80, 1);
             if (nk_button_label(ctx, "button"))
-                fprintf(stdout, "button pressed\n");
+                fputs("button pressed\n", stdout);
             nk_layout_row_dynamic(ctx, 30, 2);
             if (nk_option_label(ctx, "easy", op == EASY)) op = EASY;
             if (nk_option_label(ctx, "hard", op == HARD)) op = HARD;
@@ -187,13 +178,13 @@ main(void)
         /* ----------------------------------------- */
 
         /* Draw */
-        nk_xlib_render(nxw.win, nk_rgb(30,30,30));
+        nk_nxlib_render(nxw.win, nk_rgb(30,30,30));
 		GrFlushWindow(nxw.win);
         GrFlush();
     }
 
-    nk_xfont_del(nxw.font);
-    nk_xlib_shutdown();
+    nk_nxfont_del(nxw.font);
+    nk_nxlib_shutdown();
 	GrDestroyWindow(nxw.win);
 	GrClose();
     return 0;

@@ -1,6 +1,7 @@
 nuklear:
 add image handling
-rename xlib_ routines etc
+note: repeater buttons don't work with waiting on event style main loop
+check user loaded nk fonts
 
 
 nano-X:

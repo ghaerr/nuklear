@@ -1,4 +1,5 @@
 2019 May 14
+	* cleanup nuklear_nxlib.h routine names
 	* changed Nano-X demo to wait until event rather than generate new frame on 20ms timer
 2019 May 12
 	* add window resize handling for Nano-X, cleanup

@@ -31,28 +31,28 @@
  *
  * ===============================================================
  */
-#ifndef NK_XLIB_H_
-#define NK_XLIB_H_
+#ifndef NK_NANOX_H_
+#define NK_NANOX_H_
 
 #include "nano-X.h"
 
 typedef struct NXFont NXFont;
-NK_API struct nk_context*   nk_xlib_init(NXFont *nxfont, GR_WINDOW_ID wid, unsigned w, unsigned h);
-NK_API int                  nk_xlib_handle_event(GR_EVENT *evt);
-NK_API void                 nk_xlib_render(GR_WINDOW_ID win, struct nk_color clear);
-NK_API void                 nk_xlib_shutdown(void);
-NK_API void                 nk_xlib_set_font(NXFont*);
-NK_API void                 nk_xlib_push_font(NXFont*);
+NK_API struct nk_context*   nk_nxlib_init(NXFont *nxfont, GR_WINDOW_ID wid, unsigned w, unsigned h);
+NK_API int                  nk_nxlib_handle_event(GR_EVENT *evt);
+NK_API void                 nk_nxlib_render(GR_WINDOW_ID win, struct nk_color clear);
+NK_API void                 nk_nxlib_shutdown(void);
+NK_API void                 nk_nxlib_set_font(NXFont *nxfont);
+NK_API void                 nk_nxlib_push_font(NXFont *nxfont);
 
 /* Image */
-#ifdef NK_XLIB_INCLUDE_STB_IMAGE
-NK_API struct nk_image nk_xsurf_load_image_from_file(char const *filename);
-NK_API struct nk_image nk_xsurf_load_image_from_memory(const void *membuf, nk_uint membufSize);
+#ifdef NK_NANOX_INCLUDE_STB_IMAGE
+NK_API struct nk_image nk_nxsurf_load_image_from_file(char const *filename);
+NK_API struct nk_image nk_nxsurf_load_image_from_memory(const void *membuf, nk_uint membufSize);
 #endif
 
 /* Font */
-NK_API NXFont *             nk_xfont_create(const char *name);
-NK_API void                 nk_xfont_del(NXFont *font);
+NK_API NXFont *             nk_nxfont_create(const char *name);
+NK_API void                 nk_nxfont_del(NXFont *font);
 
 #endif
 /*
@@ -62,26 +62,26 @@ NK_API void                 nk_xfont_del(NXFont *font);
  *
  * ===============================================================
  */
-#ifdef NK_XLIB_IMPLEMENTATION
+#ifdef NK_NANOX_IMPLEMENTATION
 
 #include <sys/time.h>
 #include <unistd.h>
 #include <time.h>
 
 
-#ifdef NK_XLIB_IMPLEMENT_STB_IMAGE
+#ifdef NK_NANOX_IMPLEMENT_STB_IMAGE
 #define STB_IMAGE_IMPLEMENTATION
 #endif
 
-#ifdef NK_XLIB_INCLUDE_STB_IMAGE
+#ifdef NK_NANOX_INCLUDE_STB_IMAGE
 #include "../../example/stb_image.h"
 #endif
 
-#ifndef NK_X11_DOUBLE_CLICK_LO
-#define NK_X11_DOUBLE_CLICK_LO 20
+#ifndef NK_NANOX_DOUBLE_CLICK_LO
+#define NK_NANOX_DOUBLE_CLICK_LO 20
 #endif
-#ifndef NK_X11_DOUBLE_CLICK_HI
-#define NK_X11_DOUBLE_CLICK_HI 200
+#ifndef NK_NANOX_DOUBLE_CLICK_HI
+#define NK_NANOX_DOUBLE_CLICK_HI 200
 #endif
 
 #define GrSetGCLineAttributesEx(gc, thickness, line_type, cap_type, join_type)	/* not implemented yet*/
@@ -134,7 +134,7 @@ nk_color_from_byte(const nk_byte *c)
 }
 
 NK_INTERN NXSurface*
-nk_xsurf_create(GR_WINDOW_ID wid, unsigned int w, unsigned int h)
+nk_nxsurf_create(GR_WINDOW_ID wid, unsigned int w, unsigned int h)
 {
     NXSurface *surface = (NXSurface*)calloc(1, sizeof(NXSurface));
     surface->wid = wid;
@@ -147,14 +147,14 @@ nk_xsurf_create(GR_WINDOW_ID wid, unsigned int w, unsigned int h)
 }
 
 NK_INTERN void
-nk_xsurf_resize(NXSurface *surf, unsigned int w, unsigned int h)
+nk_nxsurf_resize(NXSurface *surf, unsigned int w, unsigned int h)
 {
     if(!surf) return;
     surf->w = w; surf->h = h;
 }
 
 NK_INTERN void
-nk_xsurf_scissor(NXSurface *surf, float x, float y, float w, float h)
+nk_nxsurf_scissor(NXSurface *surf, float x, float y, float w, float h)
 {
     GR_RECT clip_rect;
     clip_rect.x = (short)x - 1;
@@ -169,7 +169,7 @@ nk_xsurf_scissor(NXSurface *surf, float x, float y, float w, float h)
 }
 
 NK_INTERN void
-nk_xsurf_stroke_line(NXSurface *surf, short x0, short y0, short x1,
+nk_nxsurf_stroke_line(NXSurface *surf, short x0, short y0, short x1,
     short y1, unsigned int line_thickness, struct nk_color col)
 {
     unsigned long c = nk_color_from_byte(&col.r);
@@ -259,7 +259,7 @@ GrFillArc(GR_DRAW_ID d, GR_GC_ID gc, GR_COORD x, GR_COORD y,
 }
 
 NK_INTERN void
-nk_xsurf_stroke_rect(NXSurface* surf, short x, short y, unsigned short w,
+nk_nxsurf_stroke_rect(NXSurface* surf, short x, short y, unsigned short w,
     unsigned short h, unsigned short r, unsigned short line_thickness, struct nk_color col)
 {
     unsigned long c = nk_color_from_byte(&col.r);
@@ -292,7 +292,7 @@ nk_xsurf_stroke_rect(NXSurface* surf, short x, short y, unsigned short w,
 }
 
 NK_INTERN void
-nk_xsurf_fill_rect(NXSurface* surf, short x, short y, unsigned short w,
+nk_nxsurf_fill_rect(NXSurface* surf, short x, short y, unsigned short w,
     unsigned short h, unsigned short r, struct nk_color col)
 {
     unsigned long c = nk_color_from_byte(&col.r);
@@ -351,7 +351,7 @@ nk_xsurf_fill_rect(NXSurface* surf, short x, short y, unsigned short w,
 }
 
 NK_INTERN void
-nk_xsurf_fill_triangle(NXSurface *surf, short x0, short y0, short x1,
+nk_nxsurf_fill_triangle(NXSurface *surf, short x0, short y0, short x1,
     short y1, short x2, short y2, struct nk_color col)
 {
     GR_POINT pnts[3];
@@ -368,7 +368,7 @@ nk_xsurf_fill_triangle(NXSurface *surf, short x0, short y0, short x1,
 }
 
 NK_INTERN void
-nk_xsurf_stroke_triangle(NXSurface *surf, short x0, short y0, short x1,
+nk_nxsurf_stroke_triangle(NXSurface *surf, short x0, short y0, short x1,
     short y1, short x2, short y2, unsigned short line_thickness, struct nk_color col)
 {
     unsigned long c = nk_color_from_byte(&col.r);
@@ -381,7 +381,7 @@ nk_xsurf_stroke_triangle(NXSurface *surf, short x0, short y0, short x1,
 }
 
 NK_INTERN void
-nk_xsurf_fill_polygon(NXSurface *surf,  const struct nk_vec2i *pnts, int count,
+nk_nxsurf_fill_polygon(NXSurface *surf,  const struct nk_vec2i *pnts, int count,
     struct nk_color col)
 {
     int i = 0;
@@ -399,7 +399,7 @@ nk_xsurf_fill_polygon(NXSurface *surf,  const struct nk_vec2i *pnts, int count,
 }
 
 NK_INTERN void
-nk_xsurf_stroke_polygon(NXSurface *surf, const struct nk_vec2i *pnts, int count,
+nk_nxsurf_stroke_polygon(NXSurface *surf, const struct nk_vec2i *pnts, int count,
     unsigned short line_thickness, struct nk_color col)
 {
     int i = 0;
@@ -413,7 +413,7 @@ nk_xsurf_stroke_polygon(NXSurface *surf, const struct nk_vec2i *pnts, int count,
 }
 
 NK_INTERN void
-nk_xsurf_stroke_polyline(NXSurface *surf, const struct nk_vec2i *pnts,
+nk_nxsurf_stroke_polyline(NXSurface *surf, const struct nk_vec2i *pnts,
     int count, unsigned short line_thickness, struct nk_color col)
 {
     int i = 0;
@@ -426,7 +426,7 @@ nk_xsurf_stroke_polyline(NXSurface *surf, const struct nk_vec2i *pnts,
 }
 
 NK_INTERN void
-nk_xsurf_fill_circle(NXSurface *surf, short x, short y, unsigned short w,
+nk_nxsurf_fill_circle(NXSurface *surf, short x, short y, unsigned short w,
     unsigned short h, struct nk_color col)
 {
     unsigned long c = nk_color_from_byte(&col.r);
@@ -438,7 +438,7 @@ nk_xsurf_fill_circle(NXSurface *surf, short x, short y, unsigned short w,
 }
 
 NK_INTERN void
-nk_xsurf_stroke_circle(NXSurface *surf, short x, short y, unsigned short w,
+nk_nxsurf_stroke_circle(NXSurface *surf, short x, short y, unsigned short w,
     unsigned short h, unsigned short line_thickness, struct nk_color col)
 {
     unsigned long c = nk_color_from_byte(&col.r);
@@ -451,7 +451,7 @@ nk_xsurf_stroke_circle(NXSurface *surf, short x, short y, unsigned short w,
 }
 
 NK_INTERN void
-nk_xsurf_stroke_curve(NXSurface *surf, struct nk_vec2i p1,
+nk_nxsurf_stroke_curve(NXSurface *surf, struct nk_vec2i p1,
     struct nk_vec2i p2, struct nk_vec2i p3, struct nk_vec2i p4,
     unsigned int num_segments, unsigned short line_thickness, struct nk_color col)
 {
@@ -471,13 +471,13 @@ nk_xsurf_stroke_curve(NXSurface *surf, struct nk_vec2i p1,
         float w4 = t * t *t;
         float x = w1 * p1.x + w2 * p2.x + w3 * p3.x + w4 * p4.x;
         float y = w1 * p1.y + w2 * p2.y + w3 * p3.y + w4 * p4.y;
-        nk_xsurf_stroke_line(surf, last.x, last.y, (short)x, (short)y, line_thickness,col);
+        nk_nxsurf_stroke_line(surf, last.x, last.y, (short)x, (short)y, line_thickness,col);
         last.x = (short)x; last.y = (short)y;
     }
 }
 
 NK_INTERN void
-nk_xsurf_draw_text(NXSurface *surf, short x, short y, unsigned short w, unsigned short h,
+nk_nxsurf_draw_text(NXSurface *surf, short x, short y, unsigned short w, unsigned short h,
     const char *text, int len, NXFont *font, struct nk_color cbg, struct nk_color cfg)
 {
     int tx, ty;
@@ -496,10 +496,10 @@ nk_xsurf_draw_text(NXSurface *surf, short x, short y, unsigned short w, unsigned
 
 
 #if 0000
-#ifdef NK_XLIB_INCLUDE_STB_IMAGE
+#ifdef NK_NANOX_INCLUDE_STB_IMAGE
 NK_INTERN struct nk_image
-nk_stbi_image_to_xsurf(unsigned char *data, int width, int height, int channels) {
-    NXSurface *surf = xlib.surf;
+nk_stbi_image_to_nxsurf(unsigned char *data, int width, int height, int channels) {
+    NXSurface *surf = nxlib.surf;
     struct nk_image img;
     int bpl = channels;
     long i, isize = width*height*channels;
@@ -552,12 +552,8 @@ nk_stbi_image_to_xsurf(unsigned char *data, int width, int height, int channels)
         }
     }
     
-    aimage->ximage = XCreateImage(surf->dpy, 
-           CopyFromParent, depth, 
-           ZPixmap, 0, 
-           (char*)data, 
-           width, height, 
-           bpl*8, bpl * width); 
+    aimage->ximage = XCreateImage(surf->dpy, CopyFromParent, depth, ZPixmap, 0, 
+           (char*)data, width, height, bpl*8, bpl * width); 
     img = nk_image_ptr( (void*)aimage);
     img.h = height;
     img.w = width;
@@ -565,26 +561,26 @@ nk_stbi_image_to_xsurf(unsigned char *data, int width, int height, int channels)
 }
 
 NK_API struct nk_image
-nk_xsurf_load_image_from_memory(const void *membuf, nk_uint membufSize)
+nk_nxsurf_load_image_from_memory(const void *membuf, nk_uint membufSize)
 {
     int x,y,n;
     unsigned char *data;
     data = stbi_load_from_memory(membuf, membufSize, &x, &y, &n, 0);
-    return nk_stbi_image_to_xsurf(data, x, y, n);
+    return nk_stbi_image_to_nxsurf(data, x, y, n);
 }
 
 NK_API struct nk_image
-nk_xsurf_load_image_from_file(char const *filename)
+nk_nxsurf_load_image_from_file(char const *filename)
 {
     int x,y,n;
     unsigned char *data;
     data = stbi_load(filename, &x, &y, &n, 0);
-    return nk_stbi_image_to_xsurf(data, x, y, n);
+    return nk_stbi_image_to_nxsurf(data, x, y, n);
 }
-#endif /* NK_XLIB_INCLUDE_STB_IMAGE */
+#endif /* NK_NANOX_INCLUDE_STB_IMAGE */
 
 NK_INTERN void
-nk_xsurf_draw_image(NXSurface *surf, short x, short y, unsigned short w, unsigned short h,
+nk_nxsurf_draw_image(NXSurface *surf, short x, short y, unsigned short w, unsigned short h,
     struct nk_image img, struct nk_color col)
 {
     XImageWithAlpha *aimage = img.handle.ptr;
@@ -599,9 +595,9 @@ nk_xsurf_draw_image(NXSurface *surf, short x, short y, unsigned short w, unsigne
 }
 
 void
-nk_xsurf_image_free(struct nk_image* image)
+nk_nxsurf_image_free(struct nk_image* image)
 {
-    NXSurface *surf = xlib.surf;
+    NXSurface *surf = nxlib.surf;
     XImageWithAlpha *aimage = image->handle.ptr;
     if (!aimage) return;
     XDestroyImage(aimage->ximage);
@@ -612,14 +608,14 @@ nk_xsurf_image_free(struct nk_image* image)
 #endif
 
 NK_INTERN void
-nk_xsurf_clear(NXSurface *surf, unsigned long color)
+nk_nxsurf_clear(NXSurface *surf, unsigned long color)
 {
 	GrSetGCForeground(surf->gc, color);
 	GrFillRect(surf->wid, surf->gc, 0, 0, surf->w, surf->h);
 }
 
 NK_INTERN void
-nk_xsurf_del(NXSurface *surf)
+nk_nxsurf_del(NXSurface *surf)
 {
     GrDestroyGC(surf->gc);
 	if (surf->clip)
@@ -628,7 +624,7 @@ nk_xsurf_del(NXSurface *surf)
 }
 
 NK_API NXFont*
-nk_xfont_create(const char *name)
+nk_nxfont_create(const char *name)
 {
     NXFont *font;
 	GR_FONT_INFO finfo;
@@ -653,7 +649,7 @@ nk_xfont_create(const char *name)
 }
 
 NK_INTERN float
-nk_xfont_get_text_width(nk_handle handle, float height, const char *text, int len)
+nk_nxfont_get_text_width(nk_handle handle, float height, const char *text, int len)
 {
     NXFont *font = (NXFont*)handle.ptr;
 	GR_SIZE w = 0, h, b;
@@ -665,7 +661,7 @@ nk_xfont_get_text_width(nk_handle handle, float height, const char *text, int le
 }
 
 NK_API void
-nk_xfont_del(NXFont *font)
+nk_nxfont_del(NXFont *font)
 {
     if(!font) return;
 
@@ -675,12 +671,12 @@ nk_xfont_del(NXFont *font)
 }
 
 NK_API struct nk_context*
-nk_xlib_init(NXFont *nxfont, GR_WINDOW_ID wid, unsigned int w, unsigned int h)
+nk_nxlib_init(NXFont *nxfont, GR_WINDOW_ID wid, unsigned int w, unsigned int h)
 {
     struct nk_user_font *font = &nxfont->handle;
     font->userdata = nk_handle_ptr(nxfont);
     font->height = (float)nxfont->height;
-    font->width = nk_xfont_get_text_width;
+    font->width = nk_nxfont_get_text_width;
 
 #if 0
     /* create invisible cursor */
@@ -690,34 +686,34 @@ nk_xlib_init(NXFont *nxfont, GR_WINDOW_ID wid, unsigned int w, unsigned int h)
     xlib.cursor = XCreatePixmapCursor(dpy, blank, blank, &dummy, &dummy, 0, 0);
     XFreePixmap(dpy, blank);}
 #endif
-    nxlib.surf = nk_xsurf_create(wid, w, h);
+    nxlib.surf = nk_nxsurf_create(wid, w, h);
 	nxlib.wid = wid;
     nk_init_default(&nxlib.ctx, font);
     return &nxlib.ctx;
 }
 
 NK_API void
-nk_xlib_set_font(NXFont *xfont)
+nk_nxlib_set_font(NXFont *nxfont)
 {
-    struct nk_user_font *font = &xfont->handle;
-    font->userdata = nk_handle_ptr(xfont);
-    font->height = (float)xfont->height;
-    font->width = nk_xfont_get_text_width;
+    struct nk_user_font *font = &nxfont->handle;
+    font->userdata = nk_handle_ptr(nxfont);
+    font->height = (float)nxfont->height;
+    font->width = nk_nxfont_get_text_width;
     nk_style_set_font(&nxlib.ctx, font);
 }
 
 NK_API void
-nk_xlib_push_font(NXFont *xfont)
+nk_nxlib_push_font(NXFont *nxfont)
 {
-    struct nk_user_font *font = &xfont->handle;
-    font->userdata = nk_handle_ptr(xfont);
-    font->height = (float)xfont->height;
-    font->width = nk_xfont_get_text_width;
+    struct nk_user_font *font = &nxfont->handle;
+    font->userdata = nk_handle_ptr(nxfont);
+    font->height = (float)nxfont->height;
+    font->width = nk_nxfont_get_text_width;
     nk_style_push_font(&nxlib.ctx, font);
 }
 
 NK_API int
-nk_xlib_handle_event(GR_EVENT *evt)
+nk_nxlib_handle_event(GR_EVENT *evt)
 {
     struct nk_context *ctx = &nxlib.ctx;
 
@@ -808,7 +804,7 @@ nk_xlib_handle_event(GR_EVENT *evt)
 		{
             if (down) { /* Double-Click Button handler */
                 long dt = nk_timestamp() - nxlib.last_button_click;
-                if (dt > NK_X11_DOUBLE_CLICK_LO && dt < NK_X11_DOUBLE_CLICK_HI)
+                if (dt > NK_NANOX_DOUBLE_CLICK_LO && dt < NK_NANOX_DOUBLE_CLICK_HI)
                     nk_input_button(ctx, NK_BUTTON_DOUBLE, x, y, nk_true);
                 nxlib.last_button_click = nk_timestamp();
             } else nk_input_button(ctx, NK_BUTTON_DOUBLE, x, y, nk_false);
@@ -840,7 +836,7 @@ nk_xlib_handle_event(GR_EVENT *evt)
 	{
         /* Window resize handler */
 		if (evt->update.wid == nxlib.wid && evt->update.utype == GR_UPDATE_SIZE)
-        	nk_xsurf_resize(nxlib.surf, evt->update.width, evt->update.height);
+        	nk_nxsurf_resize(nxlib.surf, evt->update.width, evt->update.height);
         return 1;
     }
 
@@ -848,92 +844,92 @@ nk_xlib_handle_event(GR_EVENT *evt)
 }
 
 NK_API void
-nk_xlib_shutdown(void)
+nk_nxlib_shutdown(void)
 {
-    nk_xsurf_del(nxlib.surf);
+    nk_nxsurf_del(nxlib.surf);
     nk_free(&nxlib.ctx);
     /*XFreeCursor(xlib.dpy, xlib.cursor);*/
     nk_memset(&nxlib.ctx, 0, sizeof(nxlib.ctx));
 }
 
 NK_API void
-nk_xlib_render(GR_WINDOW_ID win, struct nk_color clear)
+nk_nxlib_render(GR_WINDOW_ID win, struct nk_color clear)
 {
     const struct nk_command *cmd;
     struct nk_context *ctx = &nxlib.ctx;
     NXSurface *surf = nxlib.surf;
 
-    nk_xsurf_clear(nxlib.surf, nk_color_from_byte(&clear.r));
+    nk_nxsurf_clear(nxlib.surf, nk_color_from_byte(&clear.r));
     nk_foreach(cmd, &nxlib.ctx)
     {
         switch (cmd->type) {
         case NK_COMMAND_NOP: break;
         case NK_COMMAND_SCISSOR: {
             const struct nk_command_scissor *s =(const struct nk_command_scissor*)cmd;
-            nk_xsurf_scissor(surf, s->x, s->y, s->w, s->h);
+            nk_nxsurf_scissor(surf, s->x, s->y, s->w, s->h);
         } break;
         case NK_COMMAND_LINE: {
             const struct nk_command_line *l = (const struct nk_command_line *)cmd;
-            nk_xsurf_stroke_line(surf, l->begin.x, l->begin.y, l->end.x,
+            nk_nxsurf_stroke_line(surf, l->begin.x, l->begin.y, l->end.x,
                 l->end.y, l->line_thickness, l->color);
         } break;
         case NK_COMMAND_RECT: {
             const struct nk_command_rect *r = (const struct nk_command_rect *)cmd;
-            nk_xsurf_stroke_rect(surf, r->x, r->y, NK_MAX(r->w -r->line_thickness, 0),
+            nk_nxsurf_stroke_rect(surf, r->x, r->y, NK_MAX(r->w -r->line_thickness, 0),
                 NK_MAX(r->h - r->line_thickness, 0), (unsigned short)r->rounding,
                 r->line_thickness, r->color);
         } break;
         case NK_COMMAND_RECT_FILLED: {
             const struct nk_command_rect_filled *r = (const struct nk_command_rect_filled *)cmd;
-            nk_xsurf_fill_rect(surf, r->x, r->y, r->w, r->h,
+            nk_nxsurf_fill_rect(surf, r->x, r->y, r->w, r->h,
                 (unsigned short)r->rounding, r->color);
         } break;
         case NK_COMMAND_CIRCLE: {
             const struct nk_command_circle *c = (const struct nk_command_circle *)cmd;
-            nk_xsurf_stroke_circle(surf, c->x, c->y, c->w, c->h, c->line_thickness, c->color);
+            nk_nxsurf_stroke_circle(surf, c->x, c->y, c->w, c->h, c->line_thickness, c->color);
         } break;
         case NK_COMMAND_CIRCLE_FILLED: {
             const struct nk_command_circle_filled *c = (const struct nk_command_circle_filled *)cmd;
-            nk_xsurf_fill_circle(surf, c->x, c->y, c->w, c->h, c->color);
+            nk_nxsurf_fill_circle(surf, c->x, c->y, c->w, c->h, c->color);
         } break;
         case NK_COMMAND_TRIANGLE: {
             const struct nk_command_triangle*t = (const struct nk_command_triangle*)cmd;
-            nk_xsurf_stroke_triangle(surf, t->a.x, t->a.y, t->b.x, t->b.y,
+            nk_nxsurf_stroke_triangle(surf, t->a.x, t->a.y, t->b.x, t->b.y,
                 t->c.x, t->c.y, t->line_thickness, t->color);
         } break;
         case NK_COMMAND_TRIANGLE_FILLED: {
             const struct nk_command_triangle_filled *t = (const struct nk_command_triangle_filled *)cmd;
-            nk_xsurf_fill_triangle(surf, t->a.x, t->a.y, t->b.x, t->b.y,
+            nk_nxsurf_fill_triangle(surf, t->a.x, t->a.y, t->b.x, t->b.y,
                 t->c.x, t->c.y, t->color);
         } break;
         case NK_COMMAND_POLYGON: {
             const struct nk_command_polygon *p =(const struct nk_command_polygon*)cmd;
-            nk_xsurf_stroke_polygon(surf, p->points, p->point_count, p->line_thickness,p->color);
+            nk_nxsurf_stroke_polygon(surf, p->points, p->point_count, p->line_thickness,p->color);
         } break;
         case NK_COMMAND_POLYGON_FILLED: {
             const struct nk_command_polygon_filled *p = (const struct nk_command_polygon_filled *)cmd;
-            nk_xsurf_fill_polygon(surf, p->points, p->point_count, p->color);
+            nk_nxsurf_fill_polygon(surf, p->points, p->point_count, p->color);
         } break;
         case NK_COMMAND_POLYLINE: {
             const struct nk_command_polyline *p = (const struct nk_command_polyline *)cmd;
-            nk_xsurf_stroke_polyline(surf, p->points, p->point_count, p->line_thickness, p->color);
+            nk_nxsurf_stroke_polyline(surf, p->points, p->point_count, p->line_thickness, p->color);
         } break;
         case NK_COMMAND_TEXT: {
             const struct nk_command_text *t = (const struct nk_command_text*)cmd;
-            nk_xsurf_draw_text(surf, t->x, t->y, t->w, t->h,
+            nk_nxsurf_draw_text(surf, t->x, t->y, t->w, t->h,
                 (const char*)t->string, t->length,
                 (NXFont*)t->font->userdata.ptr,
                 t->background, t->foreground);
         } break;
         case NK_COMMAND_CURVE: {
             const struct nk_command_curve *q = (const struct nk_command_curve *)cmd;
-            nk_xsurf_stroke_curve(surf, q->begin, q->ctrl[0], q->ctrl[1],
+            nk_nxsurf_stroke_curve(surf, q->begin, q->ctrl[0], q->ctrl[1],
                 q->end, 22, q->line_thickness, q->color);
         } break;
 #if 0
         case NK_COMMAND_IMAGE: {
             const struct nk_command_image *i = (const struct nk_command_image *)cmd;
-            nk_xsurf_draw_image(surf, i->x, i->y, i->w, i->h, i->img, i->col);
+            nk_nxsurf_draw_image(surf, i->x, i->y, i->w, i->h, i->img, i->col);
         } break;
 #endif
         case NK_COMMAND_RECT_MULTI_COLOR:
