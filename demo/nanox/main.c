@@ -45,7 +45,6 @@
 #include "nano-X.h"
 #include "nuklear_nxlib.h"
 
-#define DTIME           20
 #define WINDOW_WIDTH    800
 #define WINDOW_HEIGHT   600
 
@@ -64,25 +63,6 @@ die(const char *fmt, ...)
     va_end(ap);
     fputs("\n", stderr);
     exit(EXIT_FAILURE);
-}
-
-static long
-timestamp(void)
-{
-    struct timeval tv;
-    if (gettimeofday(&tv, NULL) < 0) return 0;
-    return (long)((long)tv.tv_sec * 1000 + (long)tv.tv_usec/1000);
-}
-
-static void
-sleep_for(long t)
-{
-    struct timespec req;
-    const time_t sec = (int)(t/1000);
-    const long ms = t - (sec * 1000);
-    req.tv_sec = sec;
-    req.tv_nsec = ms * 1000000L;
-    while(-1 == nanosleep(&req, &req));
 }
 
 /* ===============================================================
@@ -126,8 +106,6 @@ sleep_for(long t)
 int
 main(void)
 {
-    long dt;
-    long started;
     int running = 1;
     NXWindow nxw;
     struct nk_context *ctx;
@@ -162,14 +140,18 @@ main(void)
     {
         /* Input */
         GR_EVENT evt;
-        started = timestamp();
         nk_input_begin(ctx);
-        while (GrPeekEvent(&evt)) {
+		do {
 			GrGetNextEvent(&evt);
-            if (evt.type == GR_EVENT_TYPE_CLOSE_REQ) goto cleanup;
+            if (evt.type == GR_EVENT_TYPE_CLOSE_REQ)
+				running = 0;
             nk_xlib_handle_event(&evt);
         }
+        while (running && GrPeekEvent(&evt));
         nk_input_end(ctx);
+
+		if (!running)
+			break;
 
         /* GUI */
         if (nk_begin(ctx, "Demo", nk_rect(50, 50, 200, 200),
@@ -208,14 +190,8 @@ main(void)
         nk_xlib_render(nxw.win, nk_rgb(30,30,30));
 		GrFlushWindow(nxw.win);
         GrFlush();
-
-        /* Timing */
-        dt = timestamp() - started;
-        if (dt < DTIME)
-            sleep_for(DTIME - dt);
     }
 
-cleanup:
     nk_xfont_del(nxw.font);
     nk_xlib_shutdown();
 	GrDestroyWindow(nxw.win);
